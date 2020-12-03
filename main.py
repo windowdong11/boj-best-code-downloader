@@ -151,7 +151,8 @@ def getOptimizedSolutionData(problemId):
             'language' : rawdata[6].contents[0].contents[0],
             'codeLength' : rawdata[7].contents[0],
         }
-        # print(data)
+        if debugMode:
+            print(data)
         if len(optimizedData) == 0:
             optimizedData = data
         else:
@@ -181,12 +182,11 @@ def downloadBySolutionId(solutionId):
 
 
 if __name__ == '__main__':
-    #user_id = input('enter id to login : ')
-    #user_pw = getpass('enter password : ')
-    #user_email_id = input('enter username in boj : ')
-    #user_token = input('enter token named "OnlineJudge" : ')
     userName = input("input username in boj : ")
     userToken = input('enter token named "OnlineJudge" (which published after login in web browser) : ')
+
+    debugMode = input("use debug mode? (Y/N, default: Y) : ")
+    debugMode = debugMode != "N"
 
     baseURL = 'https://www.acmicpc.net'
 
@@ -212,8 +212,9 @@ if __name__ == '__main__':
         solvedSet = getSolvedProblems()
         for problemId in solvedSet:
             data = getOptimizedSolutionData(problemId)
-            # print("{:>8}{:>8}{:>6}ms{:>8}{:>6}B"
-            # .format(problemId, data['language'], data['timeComplexity'], data['spaceComplexity'], data['codeLength']))
+            if debugMode:
+                print("{:>8}{:>8}{:>6}ms{:>8}MB{:>6}B"
+                .format(problemId, data['language'], data['timeComplexity'], data['spaceComplexity'], data['codeLength']))
 
             code = downloadBySolutionId(data['solutionId'])
             fileName = problemId
