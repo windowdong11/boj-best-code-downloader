@@ -196,12 +196,15 @@ def downloadBySolutionId(solutionId):
     res = session.get(baseURL + '/source/download/' + solutionId)
     return res.text
 
-def writeCodeToFile(code, problemId, data):
+def makeFileName(problemId, data):
     fileName = problemId + "." + data['solutionId']
     if data['language'] in fileExtensions:
         fileName += '.' + fileExtensions[data['language']]
     else:
         fileName += '.unknown.txt'
+    return fileName
+
+def writeCodeToFile(code, fileName):
     with openFileToWrite(fileName) as file:
         file.write(code)
 
@@ -218,7 +221,9 @@ def getWriteOptimizedCode(problemId):
             problemId, data['language'], data['timeComplexity'], data['spaceComplexity'], data['codeLength']
         )
         print(printForm, end="")
-    writeCodeToFile(downloadBySolutionId(data['solutionId']), problemId, data)
+    fileName = makeFileName(problemId, data)
+    if not os.path.exists(fileName):
+        writeCodeToFile(downloadBySolutionId(data['solutionId']), fileName)
 
 
 if __name__ == '__main__':
