@@ -1,6 +1,5 @@
 import os
 import threading
-from importlib.resources import contents
 
 import requests
 from bs4 import BeautifulSoup as bs
