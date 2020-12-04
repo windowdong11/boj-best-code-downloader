@@ -1,4 +1,5 @@
 import os
+import threading
 from importlib.resources import contents
 
 import requests
@@ -132,7 +133,22 @@ def getOptimizedSolutionData(problemId):
         problemURL += queryOption + '=' + queryObjs[queryOption] + '&'
     problemURL = problemURL[:-1] # 백준에서 쿼리할때 URL과 똑같이 하기 위함, 주석처리해도 문제없음 (그냥 맘에 들어서 씀)
     # 문제 채점 결과 페이지 get
-    res = session.get(problemURL)
+    tryCounter = 0
+    while True:
+        success = False
+        try:
+            tryCounter += 1
+            res = session.get(problemURL)
+            success = True
+        except Exception as e:
+            print("*Exception at main.py line 136, {}\n*[Request URL] : {}\n*[Retried] : {}\n".format(e, problemURL, tryCounter), end="")
+            if tryCounter == 3:
+                print("**********[Failed] : ", problemURL)
+                return [dict(), []]
+        if success:
+            if tryCounter > 1:
+                print("*[Success] : ", problemURL)
+            break
     page = bs(res.text, 'html.parser')
     # 채점 결과 크롤링
     results = page.find('tbody').find_all('tr')
@@ -142,6 +158,7 @@ def getOptimizedSolutionData(problemId):
     #                       시간(5), 언어(6), 코드 길이(7), 제출한 시간(8)
     # 최적화 답안 검색 : (언어별)시간->공간->코드길이->채점번호(최근)
     optimizedData = dict()
+    printData = []
     for result in results:
         rawdata = result.find_all('td')
         data = {
@@ -152,7 +169,7 @@ def getOptimizedSolutionData(problemId):
             'codeLength' : rawdata[7].contents[0],
         }
         if debugMode:
-            print(data)
+            printData.append(data)
         if len(optimizedData) == 0:
             optimizedData = data
         else:
@@ -174,11 +191,35 @@ def getOptimizedSolutionData(problemId):
                     if data[criterion] > optimizedData[criterion]:
                         optimizedData = data
                         break
-    return optimizedData
+    return [optimizedData, printData]
 
 def downloadBySolutionId(solutionId):
     res = session.get(baseURL + '/source/download/' + solutionId)
     return res.text
+
+def writeCodeToFile(code, problemId, data):
+    fileName = problemId + "." + data['solutionId']
+    if data['language'] in fileExtensions:
+        fileName += '.' + fileExtensions[data['language']]
+    else:
+        fileName += '.unknown.txt'
+    with openFileToWrite(fileName) as file:
+        file.write(code)
+
+
+def getWriteOptimizedCode(problemId):
+    data, printDatas = getOptimizedSolutionData(problemId)
+    if len(data) == 0:
+        return
+    if debugMode:
+        printForm = ""
+        for printData in printDatas:
+            printForm += str(printData)+'\n'
+        printForm += "Best : {:>8}{:>12}{:>6}ms{:>8}MB{:>6}B\n".format(
+            problemId, data['language'], data['timeComplexity'], data['spaceComplexity'], data['codeLength']
+        )
+        print(printForm, end="")
+    writeCodeToFile(downloadBySolutionId(data['solutionId']), problemId, data)
 
 
 if __name__ == '__main__':
@@ -186,7 +227,7 @@ if __name__ == '__main__':
     userToken = input('enter token named "OnlineJudge" (which published after login in web browser) : ')
 
     debugMode = input("use debug mode? (Y/N, default: Y) : ")
-    debugMode = debugMode != "N"
+    debugMode = not(debugMode == 'N' or debugMode == 'n')
 
     baseURL = 'https://www.acmicpc.net'
 
@@ -210,20 +251,11 @@ if __name__ == '__main__':
             exit(1)
         
         solvedSet = getSolvedProblems()
+        
         for problemId in solvedSet:
-            data = getOptimizedSolutionData(problemId)
-            if debugMode:
-                print("{:>8}{:>8}{:>6}ms{:>8}MB{:>6}B"
-                .format(problemId, data['language'], data['timeComplexity'], data['spaceComplexity'], data['codeLength']))
-
-            code = downloadBySolutionId(data['solutionId'])
-            fileName = problemId
-            if data['language'] in fileExtensions:
-                fileName += '.' + fileExtensions[data['language']]
-            else:
-                fileName += '.unknown.txt'
-            with openFileToWrite(fileName) as file:
-                file.write(code)
+            th = threading.Thread(target=getWriteOptimizedCode, args=(problemId,), daemon=False)
+            th.start()
+            #getWriteOptimizedCode(problemId)
 
 
 
