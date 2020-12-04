@@ -13,7 +13,12 @@ enter token named "OnlineJudge" (which published after login in web browser) : {
 use debug mode? (Y/N, default: Y) : {N이면 출력없음}
 ```
 
+### Username
+
 ![username](/images/username.PNG)  
+
+### Cookie
+
 ![cookie](/images/cookie.PNG)  
 
 ### 쿠키 확인방법 (how-to-check-cookie)
@@ -38,13 +43,16 @@ use debug mode? (Y/N, default: Y) : {N이면 출력없음}
 백준 사이트 한번 들어갔다 와주면 된다.(또는 새로고침)  
 만약 로그인이 풀리면 토큰이 바뀌었는지 확인하고 진행하면 된다.
 
-### 로그인 상태
+## 종속성(Requirements)
 
-## 종속성
-
-requests, BeautifulSoup
+python3(작성버전 3.8.3), requests, BeautifulSoup
 
 ```
 pip install requests
 pip install BeautifulSoup
 ```
+
+## TODO
+
+- [ ] (기능)언어별 최적화된 코드 다운로드  
+- [ ] (최적화)이미 다운로드 된 파일은 다운로드하지 않도록 하기  
