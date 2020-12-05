@@ -3,6 +3,8 @@ import threading
 
 import requests
 from bs4 import BeautifulSoup as bs
+from selenium import webdriver
+from selenium.webdriver.support.wait import WebDriverWait
 
 # 파일확장자 2020-12-04 업데이트
 fileExtensions = {
@@ -227,10 +229,35 @@ def getWriteOptimizedCode(problemId):
 
 
 if __name__ == '__main__':
-    userName = input("input username in boj : ")
-    userToken = input('enter token named "OnlineJudge" (which published after login in web browser) : ')
+    print(
+    """[BOJ Code Downloader]
+        Mode
+        1.  Run with cookie (require cookie named 'OnlineJudge')
+        2.  Run with selenium (require id, pw, should solve reCaptcha)"""
+    )
+    mode = int(input("enter mode (default:1) : "))
 
-    debugMode = input("use debug mode? (Y/N, default: Y) : ")
+    userToken = ""
+    userName = ""
+
+    if mode == 1:
+        userToken = input('enter token named "OnlineJudge" (which published after login in web browser) : ')
+    elif mode == 2:
+        userId = input("id : ")
+        userPw = input("pw : ")
+        baseURL = "https://www.acmicpc.net"
+        driver = webdriver.Chrome()
+        driver.get(baseURL + '/login')
+        driver.find_element_by_name("login_user_id").send_keys(userId)
+        driver.find_element_by_name("login_password").send_keys(userPw)
+        driver.find_element_by_name("auto_login").click()
+        driver.find_element_by_id("submit_button").click()
+        # reCaptcha를 하기 위한 10분
+        WebDriverWait(driver, 60 * 10).until(lambda x: x.find_element_by_class_name("tp-banner-container"))
+        userToken = driver.get_cookie('OnlineJudge')['value']
+        driver.quit()
+    print("Your cookie ('OnlineJudge'): ", userToken)
+    debugMode = input("Use debug mode? (Y/N, default: Y) : ")
     debugMode = not(debugMode == 'N' or debugMode == 'n')
 
     baseURL = 'https://www.acmicpc.net'
@@ -239,14 +266,16 @@ if __name__ == '__main__':
     mkdir(workingDir)
     
     with requests.Session() as session:
-        # 메인 페이지 접속
-        session.get(baseURL)
         # 로그인 핵심 토큰 지정
         session.cookies.set('OnlineJudge', userToken)
+        # 메인 페이지 접속
+        res = session.get(baseURL)
+        soup = bs(res.text, "html.parser")
+        # userName 추출
+        userName = soup.find('a', class_='username').text
         # 유저 페이지 이동
-        req = session.get(baseURL + '/user/' + userName)
-        # 크롤링 세팅
-        soup = bs(req.text, "html.parser")
+        res = session.get(baseURL + '/user/' + userName)
+        soup = bs(res.text, "html.parser")
 
         if isSigned():
             print("로그인 성공")
