@@ -4,13 +4,22 @@
 
 ## 사용법 (how-to-use)
 
-Windows : ```python main.py```
+Windows : ```python main.py```  
 Linux : ```python3 main.py```(확인안해봤음)
 
 ```
-input username in boj : {사진속 위치의 username, 저는 windowdong11}
-enter token named "OnlineJudge" (which published after login in web browser) : {사진 속 파란색으로 지워진 쿠키}
-use debug mode? (Y/N, default: Y) : {N이면 출력없음}
+[BOJ Code Downloader]
+        Mode
+        1.  Run with cookie (require cookie named 'OnlineJudge')
+        2.  Run with selenium (require id, pw)
+enter mode (default:1) : <mode_number>
+# Mode 1
+enter cookie named "OnlineJudge" (which published after login) : <cookie>
+# Mode 2
+id : <boj id>
+pw : <boj pw>
+
+use debug mode? (Y/N, default: Y) : <Y/N>
 ```
 
 ### Username
@@ -45,12 +54,23 @@ use debug mode? (Y/N, default: Y) : {N이면 출력없음}
 
 ## 종속성(Requirements)
 
-python3(작성버전 3.8.3), requests, BeautifulSoup
+python3(작성버전 3.8.3), requests, BeautifulSoup, selenium, ChromeDriver
 
 ```
 pip install requests
 pip install BeautifulSoup
+pip install selenium
 ```
+
+ChromeDriver : https://sites.google.com/a/chromium.org/chromedriver/downloads
+(Windows 기준)  
+크롬 드라이버를 다운받고,  
+C:\WebDriver\bin\ 에 chromedriver.exe 저장  
+C:\WebDriver\bin\ 을 환경변수, Path에 추가  
+(C:\WebDriver\bin\은 어느위치든 상관없음)  
+아래 사진처럼 환경변수 추가  
+![설정방법](/images/env_setting.png)
+
 
 ## TODO
 
@@ -59,5 +79,11 @@ pip install BeautifulSoup
 
 ## Update Log
 
-2020.12.4 : 첫 버전 작성 및 업로드, 멀티스레딩 추가  
-2020.12.5 : 파일명을 기준으로, 이미 다운된 파일은 다운하지 않도록 변경
+2020.12.4
+
+1. 첫 버전 작성 및 업로드, 멀티스레딩 추가  
+
+2020.12.5
+
+1. 파일명을 기준으로, 이미 다운된 파일은 다운하지 않도록 변경  
+2. 셀레니움을 통한 로그인 후, 쿠키 가져오는 기능 추가
