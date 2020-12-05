@@ -241,7 +241,7 @@ if __name__ == '__main__':
     userName = ""
 
     if mode == 1:
-        userToken = input('enter token named "OnlineJudge" (which published after login in web browser) : ')
+        userToken = input('enter token named "OnlineJudge" (which published after login) : ')
     elif mode == 2:
         userId = input("id : ")
         userPw = input("pw : ")
