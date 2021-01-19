@@ -90,10 +90,10 @@ fileExtensions = {
 
 def mkdir(dir):
     if not os.path.exists(dir):
-            os.makedirs(dir)
+            os.mkdir(dir)
 
-def openFileToWrite(filename):
-    return open(os.path.join(workingDir, filename), 'w+', encoding='utf-8')
+def openFileToWrite(filedir):
+    return open(os.path.join(workingDir, filedir), 'w+', encoding='utf-8')
 
 def isSigned():
     # ul의 세번째 li의 텍스트가 "로그인"이면, 로그인 되지 않음
@@ -198,16 +198,16 @@ def downloadBySolutionId(solutionId):
     res = session.get(baseURL + '/source/download/' + solutionId)
     return res.text
 
-def makeFileName(problemId, data):
-    fileName = problemId + "." + data['solutionId']
+def makeFileDir(problemId, data):
+    fileName = problemId
     if data['language'] in fileExtensions:
         fileName += '.' + fileExtensions[data['language']]
     else:
         fileName += '.unknown.txt'
-    return fileName
+    return [problemId, fileName]
 
-def writeCodeToFile(code, fileName):
-    with openFileToWrite(fileName) as file:
+def writeCodeToFile(code, filedir):
+    with openFileToWrite(filedir) as file:
         file.write(code)
 
 
@@ -223,9 +223,13 @@ def getWriteOptimizedCode(problemId):
             problemId, data['language'], data['timeComplexity'], data['spaceComplexity'], data['codeLength']
         )
         print(printForm, end="")
-    fileName = makeFileName(problemId, data)
-    if not os.path.exists(fileName):
-        writeCodeToFile(downloadBySolutionId(data['solutionId']), fileName)
+    fileDir, fileName = makeFileDir(problemId, data)
+
+    mkdir(os.path.join(workingDir, fileDir))
+    fileFullDir = os.path.join(fileDir, fileName)
+    print(fileDir, " : ", fileName, " : ", fileFullDir)
+    if not os.path.exists(fileFullDir):
+        writeCodeToFile(downloadBySolutionId(data['solutionId']), fileFullDir)
 
 
 if __name__ == '__main__':
@@ -272,7 +276,10 @@ if __name__ == '__main__':
         res = session.get(baseURL)
         soup = bs(res.text, "html.parser")
         # userName 추출
-        userName = soup.find('a', class_='username').text
+        try:
+            userName = soup.find('a', class_='username').text
+        except AttributeError:
+            print("로그인 실패, 토큰 확인, 또는 웹사이트 새로고침")
         # 유저 페이지 이동
         res = session.get(baseURL + '/user/' + userName)
         soup = bs(res.text, "html.parser")
