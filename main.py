@@ -199,6 +199,7 @@ def downloadBySolutionId(solutionId):
     return res.text
 
 def makeFileDir(problemId, data):
+    problemId = f'{problemId:0>5}'
     fileName = problemId
     if data['language'] in fileExtensions:
         fileName += '.' + fileExtensions[data['language']]
